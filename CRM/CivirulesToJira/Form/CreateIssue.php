@@ -26,11 +26,12 @@ class CRM_CivirulesToJira_Form_CreateIssue extends CRM_CivirulesActions_Form_For
 
   private function getIssueTypes() {
     $respJson = CRM_CivirulesToJira_JiraApiHelper::callJiraApi('/rest/api/3/issuetype', 'GET');
-    $issueTypes = $respJson['values'];
-    foreach($issueTypes as $issueType) {
+
+    $idToName = array();
+    foreach($respJson as $issueType) {
       $idToName[$issueType['id']] = $issueType['name'];
     }
-    return $issueTypes;
+    return $idToName;
   }
 
   private function getProfiles() {
@@ -95,7 +96,7 @@ class CRM_CivirulesToJira_Form_CreateIssue extends CRM_CivirulesActions_Form_For
     $data[CRM_CivirulesToJira_CreateIssue::$PARAM_ISSUE_SUMMARY] = $this->_submitValues[CRM_CivirulesToJira_CreateIssue::$PARAM_ISSUE_SUMMARY];
     $data[CRM_CivirulesToJira_CreateIssue::$PARAM_USE_CONTACT_NAME_FOR_SUMMARY] = $this->_submitValues[CRM_CivirulesToJira_CreateIssue::$PARAM_USE_CONTACT_NAME_FOR_SUMMARY];
     $data[CRM_CivirulesToJira_CreateIssue::$PARAM_ISSUE_TYPE] = $this->_submitValues[CRM_CivirulesToJira_CreateIssue::$PARAM_ISSUE_TYPE];
-    $data[CRM_CivirulesToJira_CreateIssue::$PARAM_PROJECT_TYPE] = $this->_submitValues[CRM_CivirulesToJira_CreateIssue::$PARAM_PROJECT_TYPE];
+    $data[CRM_CivirulesToJira_CreateIssue::$PARAM_PROJECT_KEY] = $this->_submitValues[CRM_CivirulesToJira_CreateIssue::$PARAM_PROJECT_KEY];
 
     $this->ruleAction->action_params = serialize($data);
     $this->ruleAction->save();

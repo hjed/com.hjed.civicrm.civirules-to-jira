@@ -40,27 +40,115 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
     $subTypes = CRM_Contact_BAO_Contact::getContactSubType($contactId);
     $contactType = CRM_Contact_BAO_Contact::getContactType($contactId);
 
-    $changed = false;
     $action_params = $this->getActionParameters();
 
-    // if we only want to run if it exists
-    if($action_params['only_if_not_exist']) {
-      $checkParams = array(
+    $issueSummary = "";
+    if($action_params[self::$PARAM_USE_CONTACT_NAME_FOR_SUMMARY]) {
+      $contact = civicrm_api3("Contact", "get", array("id" => $contactId));
+      $issueSummary = array_pop($contact['values'])['display_name'];
+    } else {
+      $issueSummary = $action_params[self::$PARAM_ISSUE_SUMMARY];
+    }
+
+    $description = array(
+      'type' => 'doc',
+      'version' => 1,
+      'content' => array(
+        array(
+          'type' => 'heading',
+          'attrs' => array(
+            'level' => 1
+          ),
+          'content' => array(
+            array(
+              'type' => 'text',
+              'text' => 'CiviCRM Profile'
+            )
+          )
+        ),
+        array(
+          'type' => 'table',
+          'content'  => array(
+          )
+        ),
+        array(
+          'type' => 'paragraph',
+          'content'  => array(
+            array(
+              'type' => 'text',
+              'text' => 'Profile as at ' . date(DATE_ISO8601) .' You can view the current profile '
+            ),
+            array(
+              'type' => 'text',
+              'text' => 'at CiviCRM',
+              "marks" => array(
+                array(
+                  "type" => "link",
+                  "attrs" => array(
+                    "href" => CRM_Utils_System::url("civicrm/profile/view", "reset=1&gid=".$action_params[self::$PARAM_DESCRIPTION_PROFILE], TRUE, NULL, FALSE, TRUE)
+                  )
+                )
+              )
+            )
+          )
+
+        )
+      )
+    );
+    if($action_params[self::$PARAM_DESCRIPTION_PROFILE] != null) {
+      $profile = civicrm_api3('Profile', 'get', [
+        'sequential' => 1,
+        'profile_id' => $action_params[self::$PARAM_DESCRIPTION_PROFILE],
         'contact_id' => $contactId,
-        'membership_type_id' => $action_params['type']
-      );
-      $result = civicrm_api3('membership', 'get', $checkParams);
-      if($result["count"] > 0) {
-        return;
+      ]);
+      foreach ($profile['values'] as $key => $value) {
+        $description['content'][1]['content'][] = array(
+          'type' => 'tableRow',
+          'content' => array(
+            array(
+              "type" => "tableCell",
+              "content" => array(
+                array(
+                  'type' => 'paragraph',
+                  'content'  => array(
+                    array(
+                      'type' => 'text',
+                      'text' => $key
+                    )
+                  )
+                )
+              ),
+            ),
+            array(
+              "type" => "tableCell",
+              "content" => array(
+                array(
+                  'type' => 'paragraph',
+                  'content'  => array(
+                    array(
+                      'type' => 'text',
+                      'text' => $value
+                    )
+                  )
+                )
+              )
+            )
+          )
+        );
       }
     }
 
-    $createParams = array(
-      'contact_id' => $contactId,
-      'membership_type_id' => $action_params['type']
+    $issueCreateRequest = array(
+      'fields' => array(
+        'summary' => $issueSummary,
+        'issuetype' => array('id' => $action_params[self::$PARAM_ISSUE_TYPE]),
+        'project' => array('id' => $action_params[self::$PARAM_PROJECT_KEY]),
+        'description' => $description
+      )
     );
 
-    civicrm_api3('membership', 'create', $createParams);
+
+    $respJson = CRM_CivirulesToJira_JiraApiHelper::callJiraApi('/rest/api/3/issue', 'POST', $issueCreateRequest);
   }
 
 

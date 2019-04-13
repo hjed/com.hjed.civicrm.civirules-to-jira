@@ -2,7 +2,7 @@
 
 
 {if $connected}
-    <p>You are connected!</p>
+    <p>You are connected with cloud id {$cloudId}!</p>
     <p><a href="{$oauth_url}">Connect</a></p>
     <!-- TODO: disconnect -->
 {else}

@@ -166,9 +166,9 @@ function civirules_to_jira_civicrm_navigationMenu(&$menu) {
  *
  * Used to get the connection id
  */
-function jira_sync_civicrm_oauthsync_consent_success(&$prefix) {
+function civirules_to_jira_civicrm_oauthsync_consent_success(&$prefix) {
 
-  $ids = CRM_JiraSync_JiraApiHelper::retrieveJiraCloudId();
+  $ids = CRM_CivirulesToJira_JiraApiHelper::retrieveJiraCloudId();
   if(count($ids) > 1) {
     //TODO: handle multiple ids
     echo "Too many ids";
@@ -188,23 +188,23 @@ function jira_sync_civicrm_oauthsync_consent_success(&$prefix) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
  *
  */
-function jira_sync_civicrm_navigationMenu(&$menu) {
-  _jira_sync_civix_insert_navigation_menu($menu, 'Administer', array(
+function civirules_to_jira_civicrm_navigationMenu(&$menu) {
+  _civirules_to_jira_civix_insert_navigation_menu($menu, 'Administer', array(
     'label' => E::ts('JIRA Settings'),
     'name' => 'JIRA',
     'permission' => 'administer CiviCRM',
     'operator' => 'OR',
     'separator' => 0,
   ));
-  _jira_sync_civix_insert_navigation_menu($menu, 'Administer/JIRA', array(
+  _civirules_to_jira_civix_insert_navigation_menu($menu, 'Administer/JIRA', array(
     'label' => E::ts('JIRA API Settings'),
     'name' => 'jira_sync_settings',
-    'url' => 'civicrm/jira-sync/config',
+    'url' => 'civicrm/civirules-to-jira/form/client-settings',
     'permission' => 'administer CiviCRM',
     'operator' => 'OR',
     'separator' => 0,
   ));
-  _jira_sync_civix_insert_navigation_menu($menu, 'Administer/JIRA', array(
+  _civirules_to_jira_civix_insert_navigation_menu($menu, 'Administer/JIRA', array(
     'label' => E::ts('JIRA Connection'),
     'name' => 'jira_sync_oauth_start',
     'url' => 'civicrm/civirules-to-jira/oauth/start',
@@ -212,5 +212,9 @@ function jira_sync_civicrm_navigationMenu(&$menu) {
     'operator' => 'OR',
     'separator' => 0,
   ));
-  _jira_sync_civix_navigationMenu($menu);
+  _civirules_to_jira_civix_navigationMenu($menu);
 }
+
+require_once "CRM/CivirulesToJira/JiraApiHelper.php";
+require_once CRM_Extension_System::singleton()->getMapper()->keyToPath('com.hjed.civicrm.oauth-sync');
+CRM_CivirulesToJira_JiraApiHelper::oauthHelper();

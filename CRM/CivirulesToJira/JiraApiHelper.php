@@ -101,30 +101,17 @@ class CRM_CivirulesToJira_JiraApiHelper {
     ));
     self::oauthHelper()->addAccessToken($ch);
 
-    print("<br/>connecting\n\n<br/>");
     $response = curl_exec($ch);
-    print("<br/>response\n\n<br/>");
     print_r($response);
-    print("<br/>response\n\n<br/>");
     print "-" . $response . "-";
-    print("\n\n<br/>");
     print curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    print("\n\n<br/>");
     if(curl_errno($ch) || curl_getinfo($ch, CURLINFO_HTTP_CODE) != 200) {
       echo 'Request Error:' . curl_error($ch);
       return [];
       // TODO: handle this better
     } else {
       $response_json = json_decode($response, true);//, true);
-      print json_last_error();
-      print json_last_error_msg();
-      print("\n\n<br/>");
-      print_r($response_json);
       $ids = array();
-      print("\n\n<br/>");
-      print_r($response_json[0]);
-      print("\n\n<br/>");
-      print_r($response);
       foreach ($response_json as $domain) {
         print_r($domain);
         $ids[] = $domain['id'];
@@ -159,26 +146,15 @@ class CRM_CivirulesToJira_JiraApiHelper {
     ));
     if($body != NULL) {
       $encodedBody = json_encode($body);
-      print("\b<br>");
-      print($encodedBody);
       curl_setopt($ch, CURLOPT_POSTFIELDS, $encodedBody);
     }
-    print "\n\ncall " . $path;
     self::oauthHelper()->addAccessToken($ch);
 
-    print("<br/>connecting\n\n<br/>");
     $response = curl_exec($ch);
-    print("<br/>response\n\n<br/>");
-    print_r($response);
-    print("<br/>response\n\n<br/>");
-    print "-" . $response . "-";
-    print("\n\n<br/>");
-    print curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    print("\n\n<br/>");
     if (curl_errno($ch) || curl_getinfo($ch, CURLINFO_HTTP_CODE) >= 300) {
       print 'Request Error:' . curl_error($ch);
       print '<br/>\nStatus Code: ' . curl_getinfo($ch, CURLINFO_HTTP_CODE);
-      print_r($ch);
+      print_r($response);
       throw new CRM_Extension_Exception("JIRA API Request Failed");
       return CRM_Core_Error::createError("Failed to access jira API");
       // TODO: handle this better

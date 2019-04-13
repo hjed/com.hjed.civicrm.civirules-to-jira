@@ -8,8 +8,8 @@ class CRM_CivirulesToJira_Page_JiraOauthEnd extends CRM_Core_Page {
     CRM_Utils_System::setTitle(E::ts('OAuthCallback'));
 
     //verify the callback
-    if(CRM_JiraSync_JiraApiHelper::verifyState($_GET['state'])) {
-      CRM_JiraSync_JiraApiHelper::doOAuthCodeExchange($_GET['code']);
+    if(CRM_CivirulesToJira_JiraApiHelper::verifyState($_GET['state'])) {
+      CRM_CivirulesToJira_JiraApiHelper::doOAuthCodeExchange($_GET['code']);
       echo "success";
     } else {
       echo "error";
