@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/civirules-to-jira/form/action/issue/create</path>
+    <page_callback>CRM_CivirulesToJira_Form_CreateIssue</page_callback>
+    <title>CreateIssue</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civirules-to-jira/oauth/start</path>
+    <page_callback>CRM_CivirulesToJira_Page_JiraOauthStart</page_callback>
+    <title>JiraOauthStart</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civirules-to-jira/oauth/end</path>
+    <page_callback>CRM_CivirulesToJira_Page_JiraOauthEnd</page_callback>
+    <title>JiraOauthEnd</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civirules-to-jira/form/client-settings</path>
+    <page_callback>CRM_CivirulesToJira_Form_ClientSettings</page_callback>
+    <title>ClientSettings</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+</menu>

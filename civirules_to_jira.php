@@ -161,3 +161,56 @@ function civirules_to_jira_civicrm_navigationMenu(&$menu) {
   ));
   _civirules_to_jira_civix_navigationMenu($menu);
 } // */
+/**
+ * Implements hook_civicrm_oauthsync_consent_success().
+ *
+ * Used to get the connection id
+ */
+function jira_sync_civicrm_oauthsync_consent_success(&$prefix) {
+
+  $ids = CRM_JiraSync_JiraApiHelper::retrieveJiraCloudId();
+  if(count($ids) > 1) {
+    //TODO: handle multiple ids
+    echo "Too many ids";
+    die();
+  } else if(count($ids) == 1) {
+    Civi::settings()->set("jira_cloud_id", $ids[0]);
+  } else {
+    //TODO: handle this
+    echo "request failed";
+    die();
+  }
+}
+
+/**
+ * Implements hook_civicrm_navigationMenu().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
+ *
+ */
+function jira_sync_civicrm_navigationMenu(&$menu) {
+  _jira_sync_civix_insert_navigation_menu($menu, 'Administer', array(
+    'label' => E::ts('JIRA Settings'),
+    'name' => 'JIRA',
+    'permission' => 'administer CiviCRM',
+    'operator' => 'OR',
+    'separator' => 0,
+  ));
+  _jira_sync_civix_insert_navigation_menu($menu, 'Administer/JIRA', array(
+    'label' => E::ts('JIRA API Settings'),
+    'name' => 'jira_sync_settings',
+    'url' => 'civicrm/jira-sync/config',
+    'permission' => 'administer CiviCRM',
+    'operator' => 'OR',
+    'separator' => 0,
+  ));
+  _jira_sync_civix_insert_navigation_menu($menu, 'Administer/JIRA', array(
+    'label' => E::ts('JIRA Connection'),
+    'name' => 'jira_sync_oauth_start',
+    'url' => 'civicrm/civirules-to-jira/oauth/start',
+    'permission' => 'administer CiviCRM',
+    'operator' => 'OR',
+    'separator' => 0,
+  ));
+  _jira_sync_civix_navigationMenu($menu);
+}
