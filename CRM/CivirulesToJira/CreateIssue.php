@@ -85,7 +85,7 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
                 array(
                   "type" => "link",
                   "attrs" => array(
-                    "href" => CRM_Utils_System::url("civicrm/profile/view", "reset=1&gid=".$action_params[self::$PARAM_DESCRIPTION_PROFILE], TRUE, NULL, FALSE, TRUE)
+                    "href" => CRM_Utils_System::url("civicrm/profile/view", 'reset=1&id=' . $contactId . '&gid='.$action_params[self::$PARAM_DESCRIPTION_PROFILE], TRUE, NULL, FALSE, TRUE)
                   )
                 )
               )
@@ -102,39 +102,44 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
         'contact_id' => $contactId,
       ]);
       foreach ($profile['values'] as $key => $value) {
-        $description['content'][1]['content'][] = array(
-          'type' => 'tableRow',
-          'content' => array(
-            array(
-              "type" => "tableCell",
-              "content" => array(
-                array(
-                  'type' => 'paragraph',
-                  'content'  => array(
-                    array(
-                      'type' => 'text',
-                      'text' => $key
+        if(is_string($value)) {
+          $description['content'][1]['content'][] = array(
+            'type' => 'tableRow',
+            'content' => array(
+              array(
+                "type" => "tableCell",
+                "content" => array(
+                  array(
+                    'type' => 'paragraph',
+                    'content' => array(
+                      array(
+                        'type' => 'text',
+                        'text' => $key
+                      )
                     )
                   )
-                )
+                ),
               ),
-            ),
-            array(
-              "type" => "tableCell",
-              "content" => array(
-                array(
-                  'type' => 'paragraph',
-                  'content'  => array(
-                    array(
-                      'type' => 'text',
-                      'text' => $value
+              array(
+                "type" => "tableCell",
+                "content" => array(
+                  array(
+                    'type' => 'paragraph',
+                    'content' => array(
+                      array(
+                        'type' => 'text',
+                        'text' => strval($value)
+                      )
                     )
                   )
                 )
               )
             )
-          )
-        );
+          );
+        } else {
+          print_r($key);
+          print_r($value);
+        }
       }
     }
 
