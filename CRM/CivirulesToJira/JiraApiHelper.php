@@ -162,4 +162,59 @@ class CRM_CivirulesToJira_JiraApiHelper {
       return json_decode($response, true);
     }
   }
+
+  /**
+   * Retrieve the id of the custom field "jira_user_key"
+   * @return int|null|string
+   * @throws CiviCRM_API3_Exception
+   */
+  private static function getJiraUserAccountCustomFieldId() {
+    return CRM_Core_BAO_CustomField::getCustomFieldID("jira_account_id", "jira_user_details");
+  }
+
+  /**
+   * Creates a new jira user
+   *
+   * @param $contactId the contact id of the user to create
+   * @return string the user's account id
+   */
+  public static function createJiraUser(&$contactId) {
+    $contactDetails = CRM_Contact_BAO_Contact::getContactDetails($contactId);
+
+    $response = self::callJiraApi(
+      '/rest/api/3/user', "POST", array(
+        "emailAddress" => $contactDetails[1],
+        "displayName" => $contactDetails[0],
+        "name" => $contactDetails[1],
+        "notification" => true
+      )
+    );
+
+    return $response["accountId"];
+  }
+
+  public static function getAtlassianAccountIdIfPresent(&$contactId) {
+    // see if the contact has an atlassian id
+    $params = array(
+      'entityID' => $contactId,
+      'custom_' , self::getJiraUserAccountCustomFieldId() => 1
+    );
+    $atlassianId = CRM_Core_BAO_CustomValueTable::getValues($params)['custom_' . self::getJiraUserAccountCustomFieldId()];
+
+    return $atlassianId;
+  }
+
+  public static function getAccountIdOrCreateJiraUser(&$contactId) {
+    $accountId = self::getAtlassianAccountIdIfPresent($contactId);
+    if($accountId == null) {
+      $accountId = self::createJiraUser($contactId);
+
+      $params = array(
+        'entityID' => $contactId,
+        'custom_' . self::getJiraUserAccountCustomFieldId() => $atlassianId
+      );
+      CRM_Core_BAO_CustomValueTable::setValues($params);
+    }
+    return $accountId;
+  }
 }

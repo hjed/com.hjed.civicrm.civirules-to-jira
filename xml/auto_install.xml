@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CustomData>
+  <CustomGroups>
+    <CustomGroup>
+      <name>jira_user_details</name>
+      <title>JIRA User Details</title>
+      <extends>Contact</extends>
+      <style>Inline</style>
+      <collapse_display>1</collapse_display>
+      <help_pre></help_pre>
+      <help_post></help_post>
+      <weight>11</weight>
+      <is_active>1</is_active>
+      <table_name>civicrm_value_jira_user_det_14</table_name>
+      <is_multiple>0</is_multiple>
+      <collapse_adv_display>1</collapse_adv_display>
+      <created_date>2018-10-01 18:48:16</created_date>
+      <is_reserved>1</is_reserved>
+      <is_public>0</is_public>
+    </CustomGroup>
+  </CustomGroups>
+  <CustomFields>
+    <!-- JIRA Account Details for a Contact -->
+    <CustomField>
+      <name>jira_account_id</name>
+      <label>jira_account_id</label>
+      <data_type>String</data_type>
+      <html_type>Text</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>1</weight>
+      <is_active>1</is_active>
+      <is_view>1</is_view>
+      <text_length>255</text_length>
+      <note_columns>60</note_columns>
+      <note_rows>4</note_rows>
+      <column_name>jira_account_id_35</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>jira_user_details</custom_group_name>
+    </CustomField>
+  </CustomFields>
+</CustomData>
