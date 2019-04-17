@@ -263,7 +263,7 @@ class CRM_CivirulesToJira_JiraApiHelper {
 
       $params = array(
         'entityID' => $contactId,
-        'custom_' . self::getJiraUserAccountCustomFieldId() => $atlassianId
+        'custom_' . self::getJiraUserAccountCustomFieldId() => $accountId
       );
       CRM_Core_BAO_CustomValueTable::setValues($params);
     }

@@ -38,8 +38,10 @@ class CRM_CivirulesToJira_Upgrader extends CRM_CivirulesToJira_Upgrader_Base {
    * Run an external SQL script when the module is uninstalled.
    */
   public function uninstall() {
-    CRM_Core_DAO::executeQuery('DELETE FROM civirule_action WHERE name = "create_issue"');
-    CRM_Core_DAO::executeQuery('DELETE FROM civirule_action WHERE name = "invite_jira_user"');
+//    CRM_Core_DAO::executeQuery('DELETE FROM civirule_action WHERE name = "create_issue"');
+//    CRM_Core_DAO::executeQuery('DELETE FROM civirule_action WHERE name = "invite_jira_user"');
+    CRM_Core_DAO::executeQuery('UPDATE civirule_action SET is_active = 0 WHERE name = "create_issue"');
+    CRM_Core_DAO::executeQuery('UPDATE civirule_action SET is_active = 0 WHERE name = "invite_jira_user"');
   }
 
   /**
@@ -109,7 +111,7 @@ class CRM_CivirulesToJira_Upgrader extends CRM_CivirulesToJira_Upgrader_Base {
   public function upgrade_000_000_002() {
     $this->ctx->log->info('Applying update 0.0.2');
     CRM_Core_DAO::executeQuery('
-      insert into civirule_action (name, label, class_name, is_active)
+      insert ignore into civirule_action (name, label, class_name, is_active)
       values("invite_jira_user", "Invite the contact to jira if they don\'t exist", "CRM_CivirulesToJira_InviteUser", 1)
     ');
     return TRUE;
