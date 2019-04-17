@@ -13,6 +13,10 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
   static $PARAM_ISSUE_SUMMARY = "issue_summary";
   static $PARAM_ISSUE_TYPE = "issue_type";
   static $PARAM_DESCRIPTION_PROFILE = "description_profile";
+  static $PARAM_ASSIGNEE = "assigne";
+  static $PARAM_ASSIGNE_DO_NOTHING = "null";
+  static $PARAM_ASSIGNE_ASSIGN_IF_EXISTS = "assign_if_exists";
+  static $PARAM_ASSIGNE_CREATE_AND_ASSIGN = "create_and_assign";
 
   /**
    * Method to return the url for additional form processing for action
@@ -69,6 +73,39 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
         array(
           'type' => 'table',
           'content'  => array(
+            array(
+              'type' => 'tableRow',
+              'content' => array(
+                array(
+                  "type" => "tableCell",
+                  "content" => array(
+                    array(
+                      'type' => 'paragraph',
+                      'content' => array(
+                        array(
+                          'type' => 'text',
+                          'text' => 'Field'
+                        )
+                      )
+                    )
+                  ),
+                ),
+                array(
+                  "type" => "tableCell",
+                  "content" => array(
+                    array(
+                      'type' => 'paragraph',
+                      'content' => array(
+                        array(
+                          'type' => 'text',
+                          'text' => 'Value'
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
           )
         ),
         array(
@@ -151,6 +188,23 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
         'description' => $description
       )
     );
+
+    $assigneeMode = $action_params[self::$PARAM_ASSIGNEE];
+    if($assigneeMode == self::$PARAM_ASSIGNE_ASSIGN_IF_EXISTS) {
+      $accountId = CRM_CivirulesToJira_JiraApiHelper::getAtlassianAccountIdIfPresent($contactId);
+      if($accountId != null) {
+        $issueCreateRequest['fields']['assignee'] = array(
+          'id' => $accountId
+        );
+      }
+    } else if($assigneeMode == self::$PARAM_ASSIGNE_CREATE_AND_ASSIGN) {
+      $accountId = CRM_CivirulesToJira_JiraApiHelper::getAccountIdOrCreateJiraUser($contactId);
+      if($accountId != null) {
+        $issueCreateRequest['fields']['assignee'] = array(
+          'id' => $accountId
+        );
+      }
+    }
 
 
     $respJson = CRM_CivirulesToJira_JiraApiHelper::callJiraApi('/rest/api/3/issue', 'POST', $issueCreateRequest);

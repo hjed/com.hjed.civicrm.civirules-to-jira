@@ -95,7 +95,6 @@ class CRM_CivirulesToJira_JiraApiHelper {
   public static function retrieveJiraCloudId() {
 
     $ch = curl_init( 'https://api.atlassian.com/oauth/token/accessible-resources');
-//    $ch = curl_init( 'http://localhost:1500');
     curl_setopt_array($ch, array(
       CURLOPT_RETURNTRANSFER => TRUE,
     ));
@@ -161,5 +160,113 @@ class CRM_CivirulesToJira_JiraApiHelper {
     } else {
       return json_decode($response, true);
     }
+  }
+
+  /**
+   * Call a JIRA api endpoint with an API token rather than our normal oauth method
+   * used for operations that require more access.
+   *
+   * @param string $path the path after the jira base url
+   *  Ex. /rest/api/3/groups/picker
+   * @param string $method the http method to use
+   * @param array $body the body of the post request
+   * @return array | CRM_Core_Error
+   */
+  public static function callJiraApiWithToken($path, $method = "GET", $body = NULL) {
+
+    // build the url
+    $url = Civi::settings()->get("jira_api_token_site") .
+      '/' .
+      $path;
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, array(
+      CURLOPT_RETURNTRANSFER => TRUE,
+      CURLOPT_CUSTOMREQUEST => $method
+    ));
+    if($body != NULL) {
+      $encodedBody = json_encode($body);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $encodedBody);
+    }
+    curl_setopt(
+      $ch,
+      CURLOPT_HTTPHEADER,
+      array(
+        'Accept: application/json',
+        'Content-Type: application/json'
+      )
+    );
+    curl_setopt(
+      $ch,
+      CURLOPT_USERPWD,
+      Civi::settings()->get('jira_api_token_email') . ':' . Civi::settings()->get('jira_api_token')
+    );
+
+    $response = curl_exec($ch);
+    if (curl_errno($ch) || curl_getinfo($ch, CURLINFO_HTTP_CODE) >= 300) {
+      print 'Request Error:' . curl_error($ch);
+      print '<br/>\nStatus Code: ' . curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      print_r($response);
+      throw new CRM_Extension_Exception("JIRA API Request Failed");
+      return CRM_Core_Error::createError("Failed to access jira API");
+      // TODO: handle this better
+    } else {
+      return json_decode($response, true);
+    }
+  }
+
+  /**
+   * Retrieve the id of the custom field "jira_user_key"
+   * @return int|null|string
+   * @throws CiviCRM_API3_Exception
+   */
+  private static function getJiraUserAccountCustomFieldId() {
+    return CRM_Core_BAO_CustomField::getCustomFieldID("jira_account_id", "jira_user_details");
+  }
+
+  /**
+   * Creates a new jira user
+   *
+   * @param $contactId the contact id of the user to create
+   * @return string the user's account id
+   */
+  public static function createJiraUser(&$contactId) {
+    $contactDetails = CRM_Contact_BAO_Contact::getContactDetails($contactId);
+
+    $response = self::callJiraApiWithToken(
+      '/rest/api/3/user', "POST", array(
+        "emailAddress" => $contactDetails[1],
+        "displayName" => $contactDetails[0],
+        "name" => $contactDetails[1],
+        "notification" => true
+      )
+    );
+
+    return $response["accountId"];
+  }
+
+  public static function getAtlassianAccountIdIfPresent(&$contactId) {
+    // see if the contact has an atlassian id
+    $params = array(
+      'entityID' => $contactId,
+      'custom_' , self::getJiraUserAccountCustomFieldId() => 1
+    );
+    $atlassianId = CRM_Core_BAO_CustomValueTable::getValues($params)['custom_' . self::getJiraUserAccountCustomFieldId()];
+
+    return $atlassianId;
+  }
+
+  public static function getAccountIdOrCreateJiraUser(&$contactId) {
+    $accountId = self::getAtlassianAccountIdIfPresent($contactId);
+    if($accountId == null) {
+      $accountId = self::createJiraUser($contactId);
+
+      $params = array(
+        'entityID' => $contactId,
+        'custom_' . self::getJiraUserAccountCustomFieldId() => $accountId
+      );
+      CRM_Core_BAO_CustomValueTable::setValues($params);
+    }
+    return $accountId;
   }
 }

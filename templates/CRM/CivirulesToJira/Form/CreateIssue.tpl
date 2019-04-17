@@ -27,6 +27,11 @@
     <div class="content">{$form.description_profile.html}</div>
     <div class="clear"></div>
   </div>
+  <div class="crm-section">
+    <div class="label">{$form.assigne.label}</div>
+    <div class="content">{$form.assigne.html}</div>
+    <div class="clear"></div>
+  </div>
 </div>
 
 <div class="crm-submit-buttons">
