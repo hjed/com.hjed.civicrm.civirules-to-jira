@@ -81,6 +81,18 @@ class CRM_CivirulesToJira_Form_CreateIssue extends CRM_CivirulesActions_Form_For
       array('' => ts('-- please select --')) + $this->getProfiles()
     );
 
+    $this->add(
+      'select',
+      CRM_CivirulesToJira_CreateIssue::$PARAM_ASSIGNEE,
+      ts('Assigne this issue to (requires API token)'),
+      array(
+        '' => ts('-- please select --'),
+        CRM_CivirulesToJira_CreateIssue::$PARAM_ASSIGNE_DO_NOTHING => ts('Don\'t assign the issue'),
+        CRM_CivirulesToJira_CreateIssue::$PARAM_ASSIGNE_ASSIGN_IF_EXISTS => ts('Assign to the contact that changed, if we have current jira details for them'),
+        CRM_CivirulesToJira_CreateIssue::$PARAM_ASSIGNE_CREATE_AND_ASSIGN => ts('Assign to the contact that changed, create them if we don\'t know there details'),
+      )
+    );
+
     $this->addButtons(array(
       array('type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,),
       array('type' => 'cancel', 'name' => ts('Cancel'))));
@@ -97,6 +109,7 @@ class CRM_CivirulesToJira_Form_CreateIssue extends CRM_CivirulesActions_Form_For
     $data[CRM_CivirulesToJira_CreateIssue::$PARAM_USE_CONTACT_NAME_FOR_SUMMARY] = $this->_submitValues[CRM_CivirulesToJira_CreateIssue::$PARAM_USE_CONTACT_NAME_FOR_SUMMARY];
     $data[CRM_CivirulesToJira_CreateIssue::$PARAM_ISSUE_TYPE] = $this->_submitValues[CRM_CivirulesToJira_CreateIssue::$PARAM_ISSUE_TYPE];
     $data[CRM_CivirulesToJira_CreateIssue::$PARAM_PROJECT_KEY] = $this->_submitValues[CRM_CivirulesToJira_CreateIssue::$PARAM_PROJECT_KEY];
+    $data[CRM_CivirulesToJira_CreateIssue::$PARAM_ASSIGNEE] = $this->_submitValues[CRM_CivirulesToJira_CreateIssue::$PARAM_ASSIGNEE];
 
     $this->ruleAction->action_params = serialize($data);
     $this->ruleAction->save();
