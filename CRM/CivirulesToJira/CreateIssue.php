@@ -175,7 +175,7 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
                     'content' => array(
                       array(
                         'type' => 'text',
-                        'text' => ($value !=null ? strval($value) : " ")
+                        'text' => ($value !=null ? strval($value) : "-")
                       )
                     )
                   )
@@ -183,9 +183,57 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
               )
             )
           );
-        } else {
-          print_r($key);
-          print_r($value);
+        } else if(is_array($value)) {
+          // handle multi selects
+          $listADF = array();
+          foreach ($value as $_ => $listItem) {
+            $listADF[] = array(
+              'type' => 'listItem',
+              'content' => array(
+                array(
+                  'type' => 'paragraph',
+                  'content' => array(
+                    array(
+                      'type' => 'text',
+                      'text' => strval($listItem)
+                    )
+                  )
+                )
+              )
+            );
+          }
+
+          $description['content'][1]['content'][] = array(
+            'type' => 'tableRow',
+            'content' => array(
+              array(
+                "type" => "tableCell",
+                "content" => array(
+                  array(
+                    'attrs' => array(
+                      'level' => 3
+                    ),
+                    'type' => 'heading',
+                    'content' => array(
+                      array(
+                        'type' => 'text',
+                        'text' => $fieldTranslation[preg_split('/-/', $key)[0]]
+                      )
+                    )
+                  )
+                ),
+              ),
+              array(
+                "type" => "tableCell",
+                "content" => array(
+                  array(
+                    'type' => 'bulletList',
+                    'content' => $listADF
+                  )
+                )
+              )
+            )
+          );
         }
       }
     }
