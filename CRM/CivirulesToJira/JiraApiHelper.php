@@ -249,7 +249,7 @@ class CRM_CivirulesToJira_JiraApiHelper {
     // see if the contact has an atlassian id
     $params = array(
       'entityID' => $contactId,
-      'custom_' , self::getJiraUserAccountCustomFieldId() => 1
+      'custom_' . self::getJiraUserAccountCustomFieldId() => 1
     );
     $atlassianId = CRM_Core_BAO_CustomValueTable::getValues($params)['custom_' . self::getJiraUserAccountCustomFieldId()];
 

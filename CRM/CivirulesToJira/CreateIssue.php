@@ -73,45 +73,7 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
         array(
           'type' => 'table',
           'content'  => array(
-            array(
-              'type' => 'tableRow',
-              'content' => array(
-                array(
-                  "type" => "tableCell",
-                  "content" => array(
-                    array(
-                      'attrs' => array(
-                        'level' => 2
-                      ),
-                      'type' => 'heading',
-                      'content' => array(
-                        array(
-                          'type' => 'text',
-                          'text' => 'Field'
-                        )
-                      )
-                    )
-                  ),
-                ),
-                array(
-                  "type" => "tableCell",
-                  "content" => array(
-                    array(
-                      'attrs' => array(
-                        'level' => 2
-                      ),
-                      'type' => 'heading',
-                      'content' => array(
-                        array(
-                          'type' => 'text',
-                          'text' => 'Value'
-                        )
-                      )
-                    )
-                  )
-                )
-              )
-            )
+            $this->generateHeader()
           )
         ),
         array(
@@ -145,96 +107,84 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
         'contact_id' => $contactId,
       ]);
       $fieldTranslation = $this->getProfileLabelMap($action_params[self::$PARAM_DESCRIPTION_PROFILE]);
+      $fieldTypes = $this->getSpecialFieldTypeMap($action_params[self::$PARAM_DESCRIPTION_PROFILE]);
       foreach ($profile['values'] as $key => $value) {
-        if(is_string($value)) {
-          $description['content'][1]['content'][] = array(
-            'type' => 'tableRow',
-            'content' => array(
-              array(
-                "type" => "tableCell",
-                "content" => array(
-                  array(
-                    'attrs' => array(
-                      'level' => 3
-                    ),
-                    'type' => 'heading',
-                    'content' => array(
-                      array(
-                        'type' => 'text',
-                        'text' => $fieldTranslation[preg_split('/-/', $key)[0]]
-                      )
-                    )
-                  )
-                ),
-              ),
-              array(
-                "type" => "tableCell",
-                "content" => array(
+        $valueRender = null;
+        if($fieldTypes[$key]) {
+          if($fieldTypes[$key]['type'] == 'multi' && sizeof($fieldTypes[$key]['options']) > 0) {
+            // handle multi selects
+            $listADF = array();
+            foreach ($value as $_ => $listItem) {
+              $listADF[] = array(
+                'type' => 'listItem',
+                'content' => array(
                   array(
                     'type' => 'paragraph',
                     'content' => array(
                       array(
                         'type' => 'text',
-                        'text' => ($value !=null ? strval($value) : "-")
+                        'text' => strval($fieldTypes[$key]['options'][$listItem])
                       )
                     )
                   )
                 )
-              )
-            )
-          );
-        } else if(is_array($value)) {
-          // handle multi selects
-          $listADF = array();
-          foreach ($value as $_ => $listItem) {
-            $listADF[] = array(
-              'type' => 'listItem',
-              'content' => array(
-                array(
-                  'type' => 'paragraph',
-                  'content' => array(
-                    array(
-                      'type' => 'text',
-                      'text' => strval($listItem)
-                    )
-                  )
-                )
-              )
+              );
+            }
+            $valueRender = array(
+              'type' => 'bulletList',
+              'content' => $listADF
             );
+          } elseif($fieldTypes[$key]['type'] == 'select' && sizeof($fieldTypes[$key]['options']) > 0) {
+            $value = strval($fieldTypes[$key]['options'][$value]);
+          } elseif ($fieldTypes[$key]['type'] == 'contact') {
+            $valueRender = $this->renderContact($value);
+          }
+        }
+
+
+        if($valueRender == null ) {
+          if(!is_string($value)) {
+            $value = "Unsupported Field";
           }
 
-          $description['content'][1]['content'][] = array(
-            'type' => 'tableRow',
+          $valueRender = array(
+            'type' => 'paragraph',
             'content' => array(
               array(
-                "type" => "tableCell",
-                "content" => array(
-                  array(
-                    'attrs' => array(
-                      'level' => 3
-                    ),
-                    'type' => 'heading',
-                    'content' => array(
-                      array(
-                        'type' => 'text',
-                        'text' => $fieldTranslation[preg_split('/-/', $key)[0]]
-                      )
-                    )
-                  )
-                ),
-              ),
-              array(
-                "type" => "tableCell",
-                "content" => array(
-                  array(
-                    'type' => 'bulletList',
-                    'content' => $listADF
-                  )
-                )
+                'type' => 'text',
+                'text' => ($value !=null ? strval($value) : "-")
               )
             )
           );
         }
+        $description['content'][1]['content'][] = array(
+          'type' => 'tableRow',
+          'content' => array(
+            array(
+              "type" => "tableCell",
+              "content" => array(
+                array(
+                  'attrs' => array(
+                    'level' => 3
+                  ),
+                  'type' => 'heading',
+                  'content' => array(
+                    array(
+                      'type' => 'text',
+                      'text' => $fieldTranslation[preg_split('/-/', $key)[0]]
+                    )
+                  )
+                )
+              ),
+            ),
+            array(
+              "type" => "tableCell",
+              "content" => array(
+                $valueRender
+              )
+            )
+          )
+        );
       }
     }
 
@@ -280,5 +230,128 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
     return $translation;
   }
 
+  function getSpecialFieldTypeMap($profileId) {
+    $profileFields = civicrm_api3('UFField', 'get', [
+      'uf_group_id.id' => $profileId
+    ]);
+
+    $translation = array();
+    foreach ($profileFields['values'] as $field) {
+      if(preg_match('/custom_/', $field['field_name'])) {
+        $customField = array_pop(civicrm_api3('CustomField', 'get', [
+          'id' => preg_filter('/custom_/', '', $field['field_name']),
+          'api.OptionValue.get' => array('option_group_id' => '$value.option_group_id', 'return' => array('label', 'value'))
+        ])['values']);
+
+        if($customField['data_type'] == 'ContactReference') {
+          $translation[$field['field_name']] = array(
+            'type' => 'contact'
+          );
+        } elseif ($customField['html_type'] == 'Select') {
+          $translation[$field['field_name']] = array(
+            'type' => 'select',
+            'options' => $this->translateOptionGroup($customField['api.OptionValue.get']['values'])
+          );
+        } elseif ($customField['html_type'] == 'Multi-Select') {
+          $translation[$field['field_name']] = array(
+            'type' => 'multi',
+            'options' => $this->translateOptionGroup($customField['api.OptionValue.get']['values'])
+          );
+        }
+      }
+    }
+    return $translation;
+  }
+
+  function translateOptionGroup($optionValues) {
+    $translation = array();
+    foreach ($optionValues as $option) {
+      $translation[$option['value']] = $option['label'];
+    }
+    return $translation;
+  }
+
+  function generateHeader() {
+    return array(
+      'type' => 'tableRow',
+      'content' => array(
+        array(
+          "type" => "tableCell",
+          "content" => array(
+            array(
+              'attrs' => array(
+                'level' => 2
+              ),
+              'type' => 'heading',
+              'content' => array(
+                array(
+                  'type' => 'text',
+                  'text' => 'Field'
+                )
+              )
+            )
+          ),
+        ),
+        array(
+          "type" => "tableCell",
+          "content" => array(
+            array(
+              'attrs' => array(
+                'level' => 2
+              ),
+              'type' => 'heading',
+              'content' => array(
+                array(
+                  'type' => 'text',
+                  'text' => 'Value'
+                )
+              )
+            )
+          )
+        )
+      )
+    );
+  }
+
+  function renderContact($contactId) {
+    $contact = civicrm_api3('Contact', 'get', [
+      'sequential' => 1,
+      'id' => $contactId,
+    ]);
+    $aid = CRM_CivirulesToJira_JiraApiHelper::getAtlassianAccountIdIfPresent($contactId);
+    $formatedName = null;
+    if($aid) {
+      $formatedName = array(
+        'type' => 'mention',
+        'attrs' => array(
+          'id' => $aid
+        )
+      );
+    } else {
+      $formatedName = array(
+        'type' => 'text',
+        'text' => $contact['values'][0]['display_name']
+      );
+    }
+    $valueRender = array(
+      'type' => 'paragraph',
+      'content' => array(
+        $formatedName,
+        array(
+          'type' => 'text',
+          'text' => ' (CiviCRM Contact)',
+          'marks' => array(
+            array(
+              'type' => 'link',
+              'attrs' => array(
+                'href' => CRM_Utils_System::url("civicrm/contact/view", 'reset=1&cid=' . $contactId, TRUE, NULL, FALSE, TRUE)
+              )
+            )
+          )
+        )
+      )
+    );
+    return $valueRender;
+  }
 
 }
