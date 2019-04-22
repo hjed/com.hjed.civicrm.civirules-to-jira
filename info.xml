@@ -19,7 +19,7 @@
     <ext>org.civicoop.civirules</ext>
   </requires>
   <releaseDate>2019-04-13</releaseDate>
-  <version>0.0.2</version>
+  <version>0.0.3</version>
   <develStage>alpha</develStage>
   <compatibility>
     <ver>5.0</ver>

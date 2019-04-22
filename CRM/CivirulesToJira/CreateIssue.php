@@ -80,7 +80,10 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
                   "type" => "tableCell",
                   "content" => array(
                     array(
-                      'type' => 'paragraph',
+                      'attrs' => array(
+                        'level' => 2
+                      ),
+                      'type' => 'heading',
                       'content' => array(
                         array(
                           'type' => 'text',
@@ -94,7 +97,10 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
                   "type" => "tableCell",
                   "content" => array(
                     array(
-                      'type' => 'paragraph',
+                      'attrs' => array(
+                        'level' => 2
+                      ),
+                      'type' => 'heading',
                       'content' => array(
                         array(
                           'type' => 'text',
@@ -138,6 +144,7 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
         'profile_id' => $action_params[self::$PARAM_DESCRIPTION_PROFILE],
         'contact_id' => $contactId,
       ]);
+      $fieldTranslation = $this->getProfileLabelMap($action_params[self::$PARAM_DESCRIPTION_PROFILE]);
       foreach ($profile['values'] as $key => $value) {
         if(is_string($value)) {
           $description['content'][1]['content'][] = array(
@@ -147,11 +154,14 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
                 "type" => "tableCell",
                 "content" => array(
                   array(
-                    'type' => 'paragraph',
+                    'attrs' => array(
+                      'level' => 3
+                    ),
+                    'type' => 'heading',
                     'content' => array(
                       array(
                         'type' => 'text',
-                        'text' => $key
+                        'text' => $fieldTranslation[preg_split('/-/', $key)[0]]
                       )
                     )
                   )
@@ -165,7 +175,7 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
                     'content' => array(
                       array(
                         'type' => 'text',
-                        'text' => strval($value)
+                        'text' => ($value !=null ? strval($value) : " ")
                       )
                     )
                   )
@@ -208,6 +218,18 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
 
 
     $respJson = CRM_CivirulesToJira_JiraApiHelper::callJiraApi('/rest/api/3/issue', 'POST', $issueCreateRequest);
+  }
+
+  function getProfileLabelMap($profileId) {
+    $profileLabels = civicrm_api3('UFField', 'get', [
+      'uf_group_id.id' => $profileId
+    ]);
+
+    $translation = array();
+    foreach ($profileLabels['values'] as $field) {
+      $translation[$field['field_name']] = $field['label'];
+    }
+    return $translation;
   }
 
 
