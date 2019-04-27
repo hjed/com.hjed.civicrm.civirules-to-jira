@@ -258,6 +258,16 @@ class CRM_CivirulesToJira_CreateIssue extends CRM_Civirules_Action {
             'options' => $this->translateOptionGroup($customField['api.OptionValue.get']['values'])
           );
         }
+      } elseif (preg_match('/gender_id/', $field['field_name'])) {
+        $options = civicrm_api3('OptionValue', 'get', [
+          'sequential' => 1,
+          'option_group_id.name' => "gender",
+        ]);
+        $translation[$field['field_name']] = array(
+          'type' => 'select',
+          'options' => $this->translateOptionGroup($options['values'])
+        );
+
       }
     }
     return $translation;
