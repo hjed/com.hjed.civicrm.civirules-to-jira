@@ -21,7 +21,7 @@ class CRM_CivirulesToJira_Page_JiraOauthStart extends CRM_Core_Page {
     );
     $this->assign(
       'oauth_url',
-      'https://accounts.atlassian.com/authorize?audience=api.atlassian.com&client_id=' . $client_id . '&scope=read:jira-work%20write:jira-work%20offline_access&redirect_uri=' . $redirect_url . '&state=' . $state . '&response_type=code&prompt=consent'
+      'https://auth.atlassian.com/authorize?audience=api.atlassian.com&client_id=' . $client_id . '&scope=read:jira-work%20write:jira-work%20offline_access&redirect_uri=' . $redirect_url . '&state=' . $state . '&response_type=code&prompt=consent'
     );
     parent::run();
   }

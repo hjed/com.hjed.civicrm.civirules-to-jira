@@ -6,7 +6,7 @@
 
 class CRM_CivirulesToJira_JiraApiHelper {
 
-  const TOKEN_URL = 'https://accounts.atlassian.com/oauth/token';
+  const TOKEN_URL = 'https://auth.atlassian.com/oauth/token';
   const JIRA_REST_API_BASE = "https://api.atlassian.com/ex/jira/";
 
   public static function oauthHelper() {
@@ -49,6 +49,7 @@ class CRM_CivirulesToJira_JiraApiHelper {
       ),
       // the token endpoint requires a user agent
       CURLOPT_USERAGENT => 'curl/7.55.1',
+      CURLOPT_FOLLOWLOCATION => true,
       CURLOPT_POSTFIELDS => $postBody
     ));
 //    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
@@ -151,7 +152,8 @@ class CRM_CivirulesToJira_JiraApiHelper {
 
     $response = curl_exec($ch);
     if (curl_errno($ch) || curl_getinfo($ch, CURLINFO_HTTP_CODE) >= 300) {
-      print 'Request Error:' . curl_error($ch);
+      print 'Request Error with oauth:' . curl_error($ch);
+      print $url;
       print '<br/>\nStatus Code: ' . curl_getinfo($ch, CURLINFO_HTTP_CODE);
       print_r($response);
       throw new CRM_Extension_Exception("JIRA API Request Failed");
@@ -175,9 +177,7 @@ class CRM_CivirulesToJira_JiraApiHelper {
   public static function callJiraApiWithToken($path, $method = "GET", $body = NULL) {
 
     // build the url
-    $url = Civi::settings()->get("jira_api_token_site") .
-      '/' .
-      $path;
+    $url = Civi::settings()->get("jira_api_token_site") . $path;
 
     $ch = curl_init($url);
     curl_setopt_array($ch, array(
@@ -204,8 +204,10 @@ class CRM_CivirulesToJira_JiraApiHelper {
 
     $response = curl_exec($ch);
     if (curl_errno($ch) || curl_getinfo($ch, CURLINFO_HTTP_CODE) >= 300) {
-      print 'Request Error:' . curl_error($ch);
-      print '<br/>\nStatus Code: ' . curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      print 'Request Error with api token:' . curl_error($ch);
+      print '<br/>\n Status Code: ' . curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      print $url;
+      print_r(curl_getinfo($ch, CURLINFO_HEADER_OUT));
       print_r($response);
       throw new CRM_Extension_Exception("JIRA API Request Failed");
       return CRM_Core_Error::createError("Failed to access jira API");
